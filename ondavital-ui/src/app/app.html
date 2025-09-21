@@ -1,0 +1,117 @@
+<header class="medical-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-7 col-md-12">
+                <div class="brand-container">
+                    <div class="brand-icon heartbeat"><i class="fa-solid fa-heart-pulse"></i></div>
+                    <div class="brand-text">
+                        <h1>RitmoVital</h1>
+                        <p>Sistema Avanzado de Detección de Arritmias mediante Aprendizaje Profundo</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 col-md-12">
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Precisión Validada</span>
+                        <span class="stat-value">96.7%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Análisis Previos</span>
+                        <span class="stat-value">15,847</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container-fluid">
+    <main class="dashboard-grid">
+        <section class="main-column">
+            <div class="card ecg-card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-wave-square"></i> Módulo de Análisis de Señal ECG</h2>
+                </div>
+                <div class="ecg-plot-container">
+                    <ng-container *ngIf="!isLoading; else loadingTemplate">
+                        <img *ngIf="ecgPlotUrl" [src]="ecgPlotUrl" alt="Gráfico ECG" class="ecg-plot-image">
+                        <!-- Mostramos el mensaje de error si existe -->
+                        <p *ngIf="errorMessage" class="placeholder-text" style="color: var(--warning-color);">{{ errorMessage }}</p>
+                        <p *ngIf="!ecgPlotUrl && !errorMessage" class="placeholder-text">Cargue una muestra para iniciar el análisis.</p>
+                    </ng-container>
+                    <ng-template #loadingTemplate>
+                         <p class="placeholder-text"><i class="fas fa-spinner fa-spin"></i> Cargando nueva muestra...</p>
+                    </ng-template>
+                </div>
+                <div class="action-buttons">
+                     <button (click)="classifyCurrentSample()" [disabled]="isClassifying || !currentSample || isLoading" class="action-btn">
+                        <i class="fas" [class.fa-microscope]="!isClassifying" [class.fa-spinner]="isClassifying" [class.fa-spin]="isClassifying"></i>
+                        {{ isClassifying ? 'Analizando...' : 'Iniciar Análisis' }}
+                    </button>
+                    <button (click)="loadNewSample()" [disabled]="isLoading || isClassifying" class="action-btn secondary">
+                        <i class="fas fa-sync-alt"></i>
+                        Cargar Nueva Muestra
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <aside class="sidebar-column">
+            <div class="card results-card" style="animation-delay: 0.1s;">
+                <div class="card-header d-flex justify-content-between align-items-start">
+                    <h2 class="card-title"><i class="fas fa-cogs"></i> Análisis RitmoVital</h2>
+                    <span *ngIf="classificationResult" class="status" [class.status-ok]="classificationResult.is_correct" [class.status-fail]="!classificationResult.is_correct">
+                        {{ classificationResult.is_correct ? 'Precisión Confirmada' : 'Requiere Revisión' }}
+                    </span>
+                </div>
+                <ng-container *ngIf="classificationResult; else noResults">
+                    <div class="confidence-gauge">
+                        <!-- FORMA ANGULAR DE ACTUALIZAR ESTILOS: ¡MÁS LIMPIA Y EFICIENTE! -->
+                        <div class="gauge-circle" [style.--progress.%]="classificationResult.confidence_percent">
+                            <div class="gauge-inner">
+                                <div>
+                                    <span class="gauge-value">{{ classificationResult.confidence }}</span>
+                                    <div class="gauge-label">Confianza</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="result-details-list">
+                        <li>
+                            <span class="result-label"><i class="fas fa-robot"></i> Detección:</span>
+                            <span class="result-value">{{ classificationResult.prediction }}</span>
+                        </li>
+                        <li>
+                            <span class="result-label"><i class="fas fa-user-md"></i> Etiqueta:</span>
+                            <span class="result-value">{{ classificationResult.true_label }}</span>
+                        </li>
+                        <li>
+                            <span class="result-label"><i class="fas fa-check-double"></i> Veredicto:</span>
+                            <span class="result-value" [class.verdict-correct]="classificationResult.is_correct" [class.verdict-incorrect]="!classificationResult.is_correct">
+                                {{ classificationResult.is_correct ? 'Preciso' : 'Discrepancia' }}
+                            </span>
+                        </li>
+                    </ul>
+                </ng-container>
+                <ng-template #noResults>
+                    <p *ngIf="!isClassifying" class="placeholder-text">Los resultados del análisis se mostrarán aquí.</p>
+                    <p *ngIf="isClassifying" class="placeholder-text"><i class="fas fa-spinner fa-spin"></i> Calculando resultados...</p>
+                </ng-template>
+            </div>
+
+            <div class="card supervisor-card" style="animation-delay: 0.2s;">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-user-shield"></i> Supervisor del Modelo</h2>
+                </div>
+                <div class="supervisor-card-content">
+                    <img src="doctor.png" alt="Supervisor" class="supervisor-image">
+                    <div class="supervisor-info">
+                        <h3>Dr. Alex Thompson</h3>
+                        <p>Cardiólogo</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</div>

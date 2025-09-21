@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioGenesis - Detección de Arritmias por Aprendizaje Profundo</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-glow: #667eea;
+            --secondary-glow: #764ba2;
+            --primary-gradient: linear-gradient(135deg, var(--primary-glow) 0%, var(--secondary-glow) 100%);
+            --success-color: #00d4aa;
+            --warning-color: #ff6b6b;
+            --info-color: #4ecdc4;
+            --dark-bg: #0f0f23;
+            --card-bg: rgba(26, 26, 47, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #f8fafc;
+            --text-secondary: rgba(248, 250, 252, 0.65);
+            --accent-blue: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(0, 212, 170, 0.1) 0%, transparent 50%);
+            background-size: 100% 100%;
+        }
+
+        .container-fluid {
+            padding: 0 3rem;
+            max-width: 1700px;
+            margin: 0 auto;
+        }
+
+        .medical-header {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 2.5rem 3rem;
+            position: relative;
+        }
+
+        .medical-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+        }
+
+        .col-lg-7,
+        .col-md-12 {
+            flex: 1;
+        }
+
+        .col-lg-5 {
+            flex: 0 0 auto;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .brand-icon {
+            font-size: 3rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-text h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-text p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin: 0;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: flex-end;
+            gap: 4rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success-color);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            animation: fadeInUp 0.6s ease-out forwards;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .card-title i {
+            color: var(--primary-glow);
+        }
+
+        /* Status Badge Mejorado */
+        .status {
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .status::before {
+            content: '\f058';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        .status-ok {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 212, 170, 0.1));
+            color: var(--success-color);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+        }
+
+        .status-fail {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.1));
+            color: var(--warning-color);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .status-fail::before {
+            content: '\f06a';
+        }
+
+        .ecg-plot-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            min-height: 250px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ecg-plot-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-glow);
+        }
+
+        /* Sidebar Cards Spacing Mejorado */
+        .sidebar-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .results-card {
+            padding: 2.5rem;
+        }
+
+        .confidence-gauge {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 3rem 0;
+        }
+
+        .gauge-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: conic-gradient(#4caf50 calc(var(--progress, 0) * 1%), #e0e0e0 0);
+            transition: --progress 1.5s ease-out;
+            position: relative;
+            color: #000;
+            /* Texto negro */
+        }
+
+        .gauge-inner {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: #fff;
+            /* Fondo blanco dentro */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .gauge-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #000;
+            /* Negro */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .gauge-label {
+            font-size: 0.9rem;
+            color: #555;
+            /* Gris suave */
+        }
+
+
+        .result-details-list {
+            list-style: none;
+            padding: 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .result-details-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s ease;
+        }
+
+        .result-details-list li:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .result-details-list li:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .result-label i {
+            width: 20px;
+            text-align: center;
+            color: var(--info-color);
+        }
+
+        .result-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .verdict-correct {
+            color: var(--success-color);
+        }
+
+        .verdict-incorrect {
+            color: var(--warning-color);
+        }
+
+        .supervisor-card {
+            padding: 2.5rem;
+        }
+
+        .supervisor-card-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .supervisor-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-glow);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .supervisor-info h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .supervisor-info p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .placeholder-text {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 4rem 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Utilities */
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .align-items-start {
+            align-items: flex-start;
+        }
+
+        @media (max-width: 1200px) {
+            .header-stats {
+                display: none;
+            }
+
+            .brand-container {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .col-lg-7 {
+                width: 100%;
+            }
+
+            .col-lg-5 {
+                display: none;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .container-fluid,
+            .medical-header {
+                padding: 0 1.5rem;
+            }
+
+            .medical-header {
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+            }
+
+            .brand-text h1 {
+                font-size: 1.8rem;
+            }
+
+            .brand-text p {
+                font-size: 0.9rem;
+            }
+
+            .card {
+                padding: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .action-buttons>* {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dashboard-grid {
+                gap: 2rem;
+                margin-top: 2rem;
+            }
+
+            .sidebar-column {
+                gap: 1.5rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.5rem;
+            }
+
+            .status {
+                align-self: flex-end;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .heartbeat {
+            animation: pulse 2s infinite;
+        }
+    </style>
+
+</head>
+
+<body>
+    {% load static %}
+
+    <header class="medical-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-7 col-md-12">
+                    <div class="brand-container">
+                        <div class="brand-icon heartbeat"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <div class="brand-text">
+                            <h1>RitmoVital</h1>
+                            <p>Sistema Avanzado de Detección de Arritmias mediante Aprendizaje Profundo</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 col-md-12">
+                    <div class="header-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Precisión Validada</span>
+                            <span class="stat-value">96.7%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Análisis Previos</span>
+                            <span class="stat-value">15,847</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <main class="dashboard-grid">
+            <section class="main-column">
+                <div class="card ecg-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-wave-square"></i>
+                            Módulo de Análisis de Señal ECG
+                        </h2>
+                    </div>
+                    <div class="ecg-plot-container">
+                        {% if ecg_plot %}
+                        <img src="data:image/png;base64,{{ ecg_plot }}" alt="Gráfico ECG" class="ecg-plot-image">
+                        {% else %}
+                        <p class="placeholder-text">Cargue una muestra para iniciar el análisis.</p>
+                        {% endif %}
+                    </div>
+                    <div class="action-buttons">
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn">
+                                <i class="fas fa-microscope"></i>
+                                Iniciar Análisis
+                            </button>
+                        </form>
+                        <a href="{% url 'demo_classify' %}" class="action-btn secondary">
+                            <i class="fas fa-sync-alt"></i>
+                            Cargar Nueva Muestra
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="sidebar-column">
+                <div class="card results-card" style="animation-delay: 0.1s;">
+                    <div class="card-header d-flex justify-content-between align-items-start">
+                        <h2 class="card-title">
+                            <i class="fas fa-cogs"></i>
+                            Análisis RitmoVital
+                        </h2>
+                        {% if prediction %}
+                        <span class="status {% if is_correct %}status-ok{% else %}status-fail{% endif %}">
+                            {% if is_correct %}Precisión Confirmada{% else %}Requiere Revisión{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if prediction %}
+                    <div class="confidence-gauge">
+                        <div class="gauge-circle" id="confidenceCircle"
+                            style="--progress: {{ confidence_percent|default:0 }};">
+                            <div class="gauge-inner">
+                                <div>
+                                    <span class="gauge-value">{{ confidence }}</span>
+                                    <div class="gauge-label">Confianza</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="result-details-list">
+                        <li>
+                            <span class="result-label">
+                                <i class="fas fa-robot"></i>
+                                Detección:
+                            </span>
+                            <span class="result-value">{{ prediction }}</span>
+                        </li>
+                        <li>
+                            <span class="result-label">
+                                <i class="fas fa-user-md"></i>
+                                Etiqueta:
+                            </span>
+                            <span class="result-value">{{ true_label }}</span>
+                        </li>
+                        <li>
+                            <span class="result-label">
+                                <i class="fas fa-check-double"></i>
+                                Veredicto:
+                            </span>
+                            <span
+                                class="result-value {% if is_correct %}verdict-correct{% else %}verdict-incorrect{% endif %}">
+                                {% if is_correct %}Preciso{% else %}Discrepancia{% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                    {% else %}
+                    <p class="placeholder-text">Los resultados del análisis se mostrarán aquí.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card supervisor-card" style="animation-delay: 0.2s;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-user-shield"></i>
+                            Supervisor del Modelo
+                        </h2>
+                    </div>
+                    <div class="supervisor-card-content">
+                        <img src="{% static 'assets/img/doctor.png' %}" alt="Supervisor" class="supervisor-image">
+                        <div class="supervisor-info">
+                            <h3>Dr. Alex Thompson</h3>
+                            <p>Cardiólogo</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    {% if prediction %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const confidenceCircle = document.getElementById('confidenceCircle');
+            if (confidenceCircle) {
+                setTimeout(() => {
+                    const confidenceValue = parseFloat("{{ confidence|slice:':-1' }}");
+                    confidenceCircle.style.setProperty('--progress', confidenceValue);
+                }, 100);
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+
+</html>

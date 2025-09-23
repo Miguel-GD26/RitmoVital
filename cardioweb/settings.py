@@ -30,7 +30,7 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 # --- INICIO DE LA CORRECCIÓN DE ALLOWED_HOSTS ---
 
 # Por defecto, solo permitimos localhost para desarrollo
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','ritmovital-api.up.railway.app']
 
 # Si estamos en Render, la variable de entorno RENDER_EXTERNAL_HOSTNAME existirá.
 # La añadimos a la lista de hosts permitidos.

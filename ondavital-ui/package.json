@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:ondavital-ui": "node dist/ondavital-ui/server/server.mjs"
+    "serve:ssr:ondavital-ui": "node dist/ondavital-ui/server/server.mjs",
+    "start:prod": "serve -s dist/ondavital-ui/browser"
   },
   "prettier": {
     "printWidth": 100,

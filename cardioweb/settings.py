@@ -34,9 +34,12 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Si estamos en Render, la variable de entorno RENDER_EXTERNAL_HOSTNAME existirá.
 # La añadimos a la lista de hosts permitidos.
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
+if RAILWAY_STATIC_URL:
+    # Debemos quedarnos solo con el nombre de host, sin "https://"
+    # Ejemplo: "ritmovital-api-production.up.railway.app"
+    clean_railway_host = RAILWAY_STATIC_URL.replace("https://", "").split("/")[0]
+    ALLOWED_HOSTS.append(clean_railway_host)
 
 # Application definition
 
@@ -140,14 +143,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- CONFIGURACIÓN CRÍTICA PARA LA CONEXIÓN CON ANGULAR ---
 # La URL donde vivirá tu aplicación de Angular
-ANGULAR_APP_URL = os.environ.get('ANGULAR_APP_URL', 'http://localhost:4200')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:4200')
+
+# Decirle a Django que confíe en las peticiones POST de tu frontend
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+]
 
 # Decirle a Django que confíe en las peticiones POST de tu frontend
 CSRF_TRUSTED_ORIGINS = [
-    ANGULAR_APP_URL,
-]
-
-# Permitir que el navegador reciba respuestas de tu API
-CORS_ALLOWED_ORIGINS = [
-    ANGULAR_APP_URL,
+    FRONTEND_URL,
 ]

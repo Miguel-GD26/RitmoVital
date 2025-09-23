@@ -1,0 +1,1 @@
+web: gunicorn cardioweb.wsgi:application --timeout 120
